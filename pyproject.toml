@@ -1,0 +1,24 @@
+[project]
+name = "fluxcrystal"
+version = "0.1.0"
+description = "An async Python bot framework for Fluxer, inspired by hikari"
+readme = "README.md"
+authors = [
+    { name = "fizzAI", email = "fizzarolli@riseup.net" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "anyio>=4.12.1",
+    "httpx>=0.28.1",
+    "httpx-ws>=0.8.2",
+]
+license = "LGPL-3.0"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.optional-dependencies]
+dev = [
+    "python-dotenv>=1.2.1",
+]
