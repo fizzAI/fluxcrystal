@@ -24,7 +24,11 @@ async def on_message(event: fluxcrystal.MessageCreateEvent):
     if not event.is_human:
         return
     if event.content == "!ping":
-        _ = await bot.rest.create_message(event.channel_id, content="Pong! 🏓")
+        _ = await bot.rest.create_message(
+            event.channel_id,
+            content="Pong! 🏓",
+            message_reference=event.message.into_reply()
+        )
 
 if __name__ == "__main__":
     bot.run()

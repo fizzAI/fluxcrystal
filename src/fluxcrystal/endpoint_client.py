@@ -9,7 +9,7 @@ import httpx
 from fluxcrystal.errors import RateLimitedError, try_raise_error
 from fluxcrystal.models.channels import Channel
 from fluxcrystal.models.guilds import Guild, GuildMember
-from fluxcrystal.models.messages import Message
+from fluxcrystal.models.messages import Message, MessageReference
 from fluxcrystal.models.users import User
 
 log = logging.getLogger("fluxcrystal.rest")
@@ -140,34 +140,20 @@ class RESTClient:
         self,
         channel_id: str,
         *,
-        content: str = "",
+        content: str | None = None,
+        message_reference: MessageReference | None = None,
         tts: bool = False,
         nonce: str | None = None,
     ) -> Message:
         """
-        Send a message to a channel.
-
-        Parameters
-        ----------
-        channel_id:
-            The ID of the channel to send the message to.
-        content:
-            The text content of the message.
-        tts:
-            Whether to send the message as text-to-speech.
-        nonce:
-            An optional client-provided deduplication nonce.
-
-        Returns
-        -------
-        Message
-            The sent message as a typed :class:`~fluxcrystal.models.Message`.
+        Send a message to a channel. To reply or forward messages, please see the details on referencing messages.
         """
-        body: dict[str, Any] = {"content": content}
+        body: dict[str, Any] = {"content": content, "message_reference": message_reference}
         if tts:
             body["tts"] = True
         if nonce is not None:
             body["nonce"] = nonce
+        print(body)
         data = await self._post(f"/channels/{channel_id}/messages", body)
         return Message(data)
 

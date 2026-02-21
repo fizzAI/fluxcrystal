@@ -4,10 +4,14 @@ Message model types.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, TypedDict
 
 from fluxcrystal.models.users import User
 
+class MessageReference(TypedDict):
+    type: int
+    message_id: str
+    channel_id: str
 
 class Message:
     """A message in a channel."""
@@ -49,6 +53,31 @@ class Message:
     def is_webhook(self) -> bool:
         """True if this message came from a webhook."""
         return self.webhook_id is not None
+    
+    def into_reply(self) -> MessageReference:
+        """
+        Returns a MessageReference of type REPLY for use
+        with RESTClient.send_message to reply to
+        the message that this Message represents
+        """
+        return {
+            "type": 0,
+            "message_id": self.id,
+            "channel_id": self.channel_id,
+        }
+    
+    def into_forward(self) -> MessageReference:
+        """
+        Returns a MessageReference of type FORWARD for use
+        with RESTClient.send_message to forward
+        the message that this Message represents
+        to another channel
+        """
+        return {
+            "type": 1,
+            "message_id": self.id,
+            "channel_id": self.channel_id,
+        }
 
     def __repr__(self) -> str:
         return (
