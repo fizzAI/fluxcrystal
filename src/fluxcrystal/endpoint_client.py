@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from typing import Any
 
@@ -10,6 +11,7 @@ from fluxcrystal.errors import RateLimitedError, try_raise_error
 from fluxcrystal.models.channels import Channel
 from fluxcrystal.models.guilds import Guild, GuildMember
 from fluxcrystal.models.messages import Message, MessageReference
+from fluxcrystal.models.upload import AttachmentUpload
 from fluxcrystal.models.users import User
 
 log = logging.getLogger("fluxcrystal.rest")
@@ -60,6 +62,7 @@ class RESTClient:
         *,
         json: dict[str, Any] | None = None,
         params: dict[str, Any] | None = None,
+        files: dict[str, Any] | None = None,
     ) -> Any:
         """
         Send a request, automatically retrying on 429 (rate-limit) responses.
@@ -70,6 +73,7 @@ class RESTClient:
                 path,
                 headers=self._auth_headers(),
                 json=json,
+                files=files,
                 params=params,
             )
 
@@ -108,9 +112,19 @@ class RESTClient:
         return await self._request("GET", path, params=params)
 
     async def _post(
-        self, path: str, body: dict[str, Any] | None = None
+        self, path: str, body: dict[str, Any] | None = None, files: dict[str, tuple[bytes, str]] | None = None
     ) -> Any:
-        return await self._request("POST", path, json=body or {})
+        if files is None:
+            return await self._request("POST", path, json=body or {})
+        else:
+            real_files: dict[str, tuple[str | None, bytes, str]] = {
+                "payload_json": (None, json.dumps(body).encode("utf-8"), "application/json")
+            }
+            for i, (name, file_info) in enumerate(files.items()):
+                content_bytes, content_type = file_info
+                real_files[f"files[{i}]"] = (name, content_bytes, content_type)
+
+            return await self._request("POST", path, files=real_files)
 
     async def _patch(self, path: str, body: dict[str, Any]) -> Any:
         return await self._request("PATCH", path, json=body)
@@ -144,17 +158,50 @@ class RESTClient:
         message_reference: MessageReference | None = None,
         tts: bool = False,
         nonce: str | None = None,
+        attachments: list[AttachmentUpload] | None = None,
     ) -> Message:
         """
         Send a message to a channel. To reply or forward messages, please see the details on referencing messages.
         """
-        body: dict[str, Any] = {"content": content, "message_reference": message_reference}
+        body: dict[str, Any] = {"content": content}
+        
+        if message_reference is not None:
+            body["message_reference"] = message_reference
         if tts:
             body["tts"] = True
         if nonce is not None:
             body["nonce"] = nonce
-        print(body)
-        data = await self._post(f"/channels/{channel_id}/messages", body)
+        
+        # Handle attachments
+        files: dict[str, tuple[bytes, str]] | None = None
+        if attachments:
+            files = {}
+            attachment_meta: list[dict[str, Any]] = []
+            
+            for i, attachment in enumerate(attachments):
+                content_bytes = (
+                    attachment.content.encode("utf-8")
+                    if isinstance(attachment.content, str)
+                    else attachment.content
+                )
+                filename = attachment.filename or f"file_{i}"
+                
+                # Use content_type if provided, otherwise default to octet-stream
+                content_type = attachment.content_type or "application/octet-stream"
+                files[filename] = (content_bytes, content_type)
+                
+                # Attachment metadata needs 'id' matching the files[N] index
+                meta: dict[str, Any] = {
+                    "id": i,
+                    "filename": filename,
+                }
+                if attachment.description is not None:
+                    meta["description"] = attachment.description
+                attachment_meta.append(meta)
+            
+            body["attachments"] = attachment_meta
+        
+        data = await self._post(f"/channels/{channel_id}/messages", body, files=files)
         return Message(data)
 
     async def fetch_message(self, channel_id: str, message_id: str) -> Message:

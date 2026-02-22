@@ -4,9 +4,12 @@ Message model types.
 
 from __future__ import annotations
 
-from typing import Any, TypedDict
+from typing import Any, TypedDict, TYPE_CHECKING
 
 from fluxcrystal.models.users import User
+
+if TYPE_CHECKING:
+    from fluxcrystal.models.upload import Attachment
 
 class MessageReference(TypedDict):
     type: int
@@ -31,9 +34,12 @@ class Message:
         "nonce",
         "webhook_id",
         "flags",
+        "attachments",
     )
 
     def __init__(self, data: dict[str, Any]) -> None:
+        from fluxcrystal.models.upload import Attachment
+        
         self.id: str = data["id"]
         self.channel_id: str = data["channel_id"]
         self.guild_id: str | None = data.get("guild_id")
@@ -48,6 +54,9 @@ class Message:
         self.nonce: str | None = data.get("nonce")
         self.webhook_id: str | None = data.get("webhook_id")
         self.flags: int = data.get("flags", 0)
+        self.attachments: list[Attachment] = [
+            Attachment(a) for a in data.get("attachments", [])
+        ]
 
     @property
     def is_webhook(self) -> bool:
