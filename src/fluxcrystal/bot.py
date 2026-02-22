@@ -7,7 +7,7 @@ import inspect
 import logging
 from collections import defaultdict
 from collections.abc import Callable, Coroutine
-from typing import TYPE_CHECKING, Any, TypeVar, get_type_hints
+from typing import TYPE_CHECKING, Any, TypeVar, get_type_hints, overload
 
 import anyio
 
@@ -44,6 +44,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("fluxcrystal.bot")
 
 EventT = TypeVar("EventT", bound=Event)
+F = TypeVar("F", bound=Callable[..., Coroutine[Any, Any, None]])
 
 # Callback type alias
 ListenerT = Callable[..., Coroutine[Any, Any, None]]
@@ -132,6 +133,19 @@ class GatewayBot:
             self._listeners[event_type].remove(callback)
         except ValueError:
             pass
+
+    @overload
+    def listen(
+        self,
+        event_type: type[EventT],
+    ) -> Callable[[Callable[[EventT], Coroutine[Any, Any, None]]], Callable[[EventT], Coroutine[Any, Any, None]]]:
+        ...
+
+    @overload
+    def listen(
+        self,
+    ) -> Callable[[Callable[[EventT], Coroutine[Any, Any, None]]], Callable[[EventT], Coroutine[Any, Any, None]]]:
+        ...
 
     def listen(
         self,
