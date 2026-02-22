@@ -19,6 +19,14 @@ bot.run()
 
 WIP~ 🩷
 
+## Usage
+
+For now, there aren't any published wheels on PyPI, so you can install directly from Git:
+
+```
+pip install -U git+https://github.com/fizzAI/fluxcrystal.git
+```
+
 ## License
 
 LGPL 3.0
