@@ -7,7 +7,7 @@ import fluxcrystal
 
 load_dotenv()
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 bot = fluxcrystal.GatewayBot(os.environ["FLUXER_TOKEN"])
 

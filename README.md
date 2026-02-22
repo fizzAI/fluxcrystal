@@ -2,6 +2,8 @@
 
 An async Python bot framework for [Fluxer](https://fluxer.app), (heavily) inspired by [hikari](https://github.com/hikari-py/hikari).
 
+Support server at [fluxer.gg/tJwWDS4g](https://fluxer.gg/tJwWDS4g).
+
 ```python
 import fluxcrystal
 
