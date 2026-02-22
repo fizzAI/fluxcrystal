@@ -44,7 +44,6 @@ if TYPE_CHECKING:
 log = logging.getLogger("fluxcrystal.bot")
 
 EventT = TypeVar("EventT", bound=Event)
-F = TypeVar("F", bound=Callable[..., Coroutine[Any, Any, None]])
 
 # Callback type alias
 ListenerT = Callable[..., Coroutine[Any, Any, None]]
