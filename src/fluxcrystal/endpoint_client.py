@@ -10,7 +10,7 @@ import httpx
 from fluxcrystal.errors import RateLimitedError, try_raise_error
 from fluxcrystal.models.channels import Channel
 from fluxcrystal.models.guilds import Guild, GuildMember
-from fluxcrystal.models.messages import Message, MessageReference
+from fluxcrystal.models.messages import Message, MessageReference, RichEmbed
 from fluxcrystal.models.upload import AttachmentUpload
 from fluxcrystal.models.users import User
 
@@ -159,6 +159,7 @@ class RESTClient:
         tts: bool = False,
         nonce: str | None = None,
         attachments: list[AttachmentUpload] | None = None,
+        embeds: list[RichEmbed] | None = None,
     ) -> Message:
         """
         Send a message to a channel. To reply or forward messages, please see the details on referencing messages.
@@ -171,6 +172,10 @@ class RESTClient:
             body["tts"] = True
         if nonce is not None:
             body["nonce"] = nonce
+        
+        # Handle embeds
+        if embeds is not None:
+            body["embeds"] = [embed._copy_state() for embed in embeds]
         
         # Handle attachments
         files: dict[str, tuple[bytes, str]] | None = None
@@ -242,11 +247,14 @@ class RESTClient:
         message_id: str,
         *,
         content: str | None = None,
+        embeds: list[RichEmbed] | None = None,
     ) -> Message:
         """Edit one of the bot's own messages."""
         body: dict[str, Any] = {}
         if content is not None:
             body["content"] = content
+        if embeds is not None:
+            body["embeds"] = [embed._copy_state() for embed in embeds]
         data = await self._patch(f"/channels/{channel_id}/messages/{message_id}", body)
         return Message(data)
 

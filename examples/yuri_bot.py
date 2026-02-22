@@ -96,7 +96,7 @@ async def on_ready(event: fluxcrystal.ReadyEvent) -> None:
     print("Yuri bot is ready! Use !yuri to get yuri images")
 
 
-@bot.listen(fluxcrystal.MessageCreateEvent)
+@bot.listen()
 async def on_message(event: fluxcrystal.MessageCreateEvent):
     if not event.is_human:
         return

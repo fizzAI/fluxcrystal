@@ -34,6 +34,23 @@ async def on_message(event: fluxcrystal.MessageCreateEvent):
             event.channel_id,
             message_reference=event.message.into_forward()
         )
+    if event.content == "!embed":
+        embed = (
+            fluxcrystal.RichEmbed()
+            .with_title("Hello from fluxcrystal!")
+            .with_description("This is an embed sent from the ping bot example.")
+            .with_color(0x7289DA)  # blurple color
+            .with_author("Ping Bot", icon_url="https://i.imgur.com/AfFp7pu.png")
+            .with_field("Field 1", "Some value", inline=True)
+            .with_field("Field 2", "Another value", inline=True)
+            .with_field("Field 3", "More info here", inline=False)
+            .with_footer("Footer text here")
+        )
+        _ = await bot.rest.create_message(
+            event.channel_id,
+            content="Here is your embed:",
+            embeds=[embed]
+        )
 
 if __name__ == "__main__":
     bot.run()
