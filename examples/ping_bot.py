@@ -7,7 +7,7 @@ import fluxcrystal
 
 load_dotenv()
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 bot = fluxcrystal.GatewayBot(os.environ["FLUXER_TOKEN"])
 
@@ -28,6 +28,11 @@ async def on_message(event: fluxcrystal.MessageCreateEvent):
             event.channel_id,
             content="Pong! 🏓",
             message_reference=event.message.into_reply()
+        )
+    if event.content == "!forward":
+        _ = await bot.rest.create_message(
+            event.channel_id,
+            message_reference=event.message.into_forward()
         )
 
 if __name__ == "__main__":

@@ -56,14 +56,14 @@ class GatewayConnection:
     Manages a single WebSocket connection to the Fluxer gateway.
     """
 
-    def __init__(self, bot: GatewayBot, token: str) -> None:
+    def __init__(self, bot: GatewayBot, token: str, heartbeat_interval: float | None = None) -> None:
         self._bot = bot
         self._token = token
 
         # State that lives across reconnects
         self._session_id: str | None = None
         self._seq: int | None = None
-        self._heartbeat_interval: float = 41.25  # updated by HELLO
+        self._heartbeat_interval: float = heartbeat_interval  # updated by HELLO  # pyright: ignore[reportAttributeAccessIssue]
         self._ack_received: bool = True
 
         # Written by HELLO handler, read by heartbeat loop
@@ -165,8 +165,9 @@ class GatewayConnection:
 
         if op == OP_HELLO:
             interval_ms: int = data["heartbeat_interval"]
-            self._heartbeat_interval = interval_ms / 1000.0
-            log.debug("HELLO received, heartbeat_interval=%s ms", interval_ms)
+            if not self._heartbeat_interval:
+                self._heartbeat_interval = interval_ms / 1000.0
+                log.debug("HELLO received, heartbeat_interval=%s ms", interval_ms)
             self._hello_received.set()
             if self._session_id and self._seq is not None:
                 await self._send_resume(ws)
